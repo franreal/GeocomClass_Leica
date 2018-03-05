@@ -4,8 +4,7 @@
 #include <string>
 #include <iostream>
 #include <sys/types.h>
-#include <QtNetwork>
-#include "QtcpSocket/my_client/mytcpclient.h"
+#include <SerialPort.h>
 #include <vector>
 
 /**
@@ -119,13 +118,6 @@ public:
     std::string AUT_LockIn();    
 
 private:
-    /** @fn connectSocket
-    * @brief Conexión al socket que se encarga de comunicar los datos con la estación total.
-    * @param _port Puerto del socket donde se realiza la conexión
-    * @param _IP Dirección IP de la estación total
-    * @return bool Devuelve true si la conexión se ha establecido correctamente.
-    */
-    bool connectSocket(int _port, char* _IP);
     /** @fn split
     * @brief Separa la cadena de caracteres de la respuesta en los diferentes parametros
     * @param buf Cadena de caracteres con información de la petición
@@ -146,7 +138,7 @@ private:
     */
     std::string createRequest(int cmd,std::string args);
 
-    myTCPclient clientSocket; ///< Variable del socket Leica
+    SerialPort* serial_port_;
     char serverReply[2000]; ///< buffer con la respuesta de la Total Station
 };
 

@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <class_leica/QtcpSocket/my_client/mytcpclient.h>
 
 int main(int argc, char* argv[])
 {

@@ -3,6 +3,13 @@
 
 GeoCom_Class_Leica::GeoCom_Class_Leica()
 {
+    serial_port_ = new SerialPort("/dev/ttyUSB0");
+    serial_port_->Open();
+    serial_port_->SetBaudRate(SerialPort::BAUD_115200);
+    serial_port_->SetCharSize(SerialPort::CHAR_SIZE_8);
+    serial_port_->SetFlowControl(SerialPort::FLOW_CONTROL_NONE);
+    serial_port_->SetParity(SerialPort::PARITY_NONE);
+    serial_port_->SetNumOfStopBits(SerialPort::STOP_BITS_1);
 }
 
 /******************************************************************************* TMC_GetAngle ********************************************************************************************/
@@ -68,14 +75,6 @@ std::string GeoCom_Class_Leica::AUT_LockIn()
 /****************************************************************************** InitTotalStation *****************************************************************************************/
 int GeoCom_Class_Leica::initTotalStation()
 {
-
-    if(GeoCom_Class_Leica::connectSocket(1212,"192.168.254.3")==false)
-    {
-        std::cout << "Connection to TS Leica failed" << std::endl;
-        return -1;
-    }
-    std::cout << "Connection to TS Leica successful" << std::endl;
-
     GeoCom_Class_Leica::SetPrismType(7);
     std::string GRC_OK = GeoCom_Class_Leica::AUT_LockIn();
     while (std::stoi(GRC_OK)!=0){
@@ -192,13 +191,6 @@ void GeoCom_Class_Leica::AUS_SetUserLockState(bool state)
 
 
 //.................. PRIVATE METHODS................//
-/****************************************************************************** ConnectSocket ********************************************************************************************/
-bool GeoCom_Class_Leica::connectSocket(int _port, char *_IP)
-{
-    //std::cout << "\nIP direction of server: " << _IP << " with port number: " << _port << std::endl;
-    std::cout << "Connecting to TS Leica..." << std::endl;
-    return clientSocket.connectToHost(_IP,_port);
-}
 /******************************************************************************** CreateRequest ******************************************************************************************/
 std::string GeoCom_Class_Leica::createRequest(int cmd,std::string args)
 {
@@ -209,15 +201,24 @@ std::string GeoCom_Class_Leica::createRequest(int cmd,std::string args)
 /******************************************************************************* write and read ******************************************************************************************/
 std::vector<std::string> GeoCom_Class_Leica::writeAndRead(std::string cmd)
 {
-    if(clientSocket.writeData(QByteArray(cmd.c_str(), cmd.size()))==false){
-        std::cout << "Error sending data through the socket" << std::endl;
-    }
-    //std::cout << "Printing the data sended to the Total Station: " << buffer << std::endl;
-    if(clientSocket.receiveData(serverReply)==false){
-        std::cout << "Error reading data from the socket" << std::endl;
-    }
-    //std::cout << "Printing the data received by the Total Station: " << serverReply << std::endl;
-    std::vector<std::string> params= GeoCom_Class_Leica::split(serverReply);
+    // std::cout << "Sending: " << cmd << std::endl;  // DEBUG
+    serial_port_->Write(cmd);
+
+    unsigned char rx = 0;
+    unsigned int index = 0;
+    do {
+        rx = serial_port_->ReadByte();
+        if (rx != '\r' && rx != '\n') {
+            serverReply[index++] = rx;
+        }
+    } while (rx != '\n');
+    // std::cout << "Receiving:" << std::endl;  // DEBUG
+    // for (int i = 0; i < index; i++) {
+    //     std::cout << "[" << serverReply[i] << "] ";
+    // }
+    // std::cout << std::endl;
+
+    std::vector<std::string> params = GeoCom_Class_Leica::split(serverReply);
     return params;
 }
 /*********************************************************************************** Split ***********************************************************************************************/

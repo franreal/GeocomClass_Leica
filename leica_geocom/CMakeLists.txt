@@ -6,15 +6,6 @@ project(leica_geocom)
     add_definitions(-std=c++11 -pthread -Wl,--no-as-needed)
  endif()
 
-
-find_package(Qt5Widgets REQUIRED)
-include_directories(${Qt5Widgets_INCLUDE_DIRS})
-add_definitions(${Qt5Widgets_DEFINITIONS})
-
-find_package(Qt5Network REQUIRED)
-include_directories(${Qt5Network_INCLUDE_DIRS})
-add_definitions(${Qt5Network_DEFINITIONS})
-
 find_package(catkin)
 
 if(${catkin_FOUND})
@@ -28,8 +19,7 @@ file(GLOB_RECURSE GEOCOM_LEICA "src/*.cpp" "src/*.h" "src/*.inl")
 # Add Library
 add_library(leica_geocom STATIC ${GEOCOM_LEICA})
 
-target_link_libraries(leica_geocom LINK_PUBLIC ${Qt5Widgets_LIBRARIES})
-target_link_libraries(leica_geocom LINK_PUBLIC ${Qt5Network_LIBRARIES})
+target_link_libraries(leica_geocom serial pthread)
 target_include_directories(leica_geocom PUBLIC ${PROJECT_SOURCE_DIR}/src)
 
 find_package(Doxygen)
